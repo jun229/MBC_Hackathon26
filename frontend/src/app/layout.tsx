@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-[#0a0a0a]">
+      <body className="min-h-screen">
         <SolanaWalletProvider>
           {children}
           <Toaster />

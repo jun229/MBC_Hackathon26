@@ -1,101 +1,122 @@
 import { Header } from "@/components/header";
-import { Card } from "@/components/ui/card";
 import { mockHistory, mockUserStats } from "@/lib/mock-data";
+import { Activity, TrendingUp } from "lucide-react";
+
+function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`bg-zinc-900/50 backdrop-blur-md border border-zinc-800 rounded-2xl p-5 ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+function CalendarStrip() {
+  const days = ["Su", "M", "T", "W", "Th", "F", "Sa"];
+  const today = new Date().getDay();
+
+  // Generate dates for the week
+  const currentDate = new Date();
+  const dates = days.map((_, i) => {
+    const diff = i - today;
+    const date = new Date(currentDate);
+    date.setDate(currentDate.getDate() + diff);
+    return date.getDate();
+  });
+
+  return (
+    <div className="grid grid-cols-7 gap-2 mb-6">
+      {days.map((d, i) => (
+        <div
+          key={i}
+          className={`aspect-square rounded-xl flex flex-col items-center justify-center border cursor-pointer transition-all ${
+            i === today
+              ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20"
+              : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+          }`}
+        >
+          <span className="text-[10px] opacity-80">{d}</span>
+          <span className="text-lg font-bold">{dates[i]}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function HistoryPage() {
   return (
-    <div className="max-w-7xl mx-auto px-10 py-10">
-      <Header userName="User" />
+    <div className="min-h-screen bg-zinc-950">
+      <Header />
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <Card className="bg-[#252525] p-8 rounded-2xl border-[#333]">
-          <h3 className="text-sm text-[#a0a0a0] mb-2 uppercase tracking-wider">
-            Total Winnings
-          </h3>
-          <div className="font-mono-display text-4xl font-bold text-[#4ade80]">
-            +${mockUserStats.totalWinnings}
+      <main className="max-w-md mx-auto relative">
+        <div className="p-4 space-y-6 pb-24 animate-in">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 gap-4">
+            <Card>
+              <h3 className="text-xs text-zinc-500 uppercase tracking-widest font-bold mb-1">
+                Total Winnings
+              </h3>
+              <div className="text-3xl font-mono font-bold text-emerald-400">
+                +${mockUserStats.totalWinnings.toFixed(0)}
+              </div>
+            </Card>
+            <Card>
+              <h3 className="text-xs text-zinc-500 uppercase tracking-widest font-bold mb-1">
+                This Week
+              </h3>
+              <div className="text-3xl font-mono font-bold text-white">
+                +${mockUserStats.weeklyWinnings}
+              </div>
+            </Card>
           </div>
-        </Card>
-        <Card className="bg-[#252525] p-8 rounded-2xl border-[#333]">
-          <h3 className="text-sm text-[#a0a0a0] mb-2 uppercase tracking-wider">
-            This Week
-          </h3>
-          <div className="font-mono-display text-4xl font-bold text-[#4ade80]">
-            +${mockUserStats.weeklyWinnings}
-          </div>
-        </Card>
-        <Card className="bg-[#252525] p-8 rounded-2xl border-[#333]">
-          <h3 className="text-sm text-[#a0a0a0] mb-2 uppercase tracking-wider">
-            Win Rate
-          </h3>
-          <div className="font-mono-display text-4xl font-bold text-white">
-            {mockUserStats.winRate}%
-          </div>
-        </Card>
-      </div>
 
-      {/* History List */}
-      <h2 className="text-2xl font-bold mb-6">Past Markets</h2>
-      <div className="space-y-4">
-        {mockHistory.map((item) => (
-          <Card
-            key={item.id}
-            className="bg-[#252525] p-6 rounded-2xl border-[#333] hover:border-[#ff6b35] transition-all duration-300"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <div className="w-12 h-12 rounded-full border-2 border-[#333] flex items-center justify-center text-2xl">
-                  {item.icon}
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold mb-1">{item.lobbyName}</h3>
-                  <div className="flex items-center gap-3">
+          {/* Calendar Strip */}
+          <CalendarStrip />
+
+          {/* History List */}
+          <div className="space-y-3">
+            {mockHistory.map((item) => (
+              <Card
+                key={item.id}
+                className="flex justify-between items-center group cursor-pointer hover:border-zinc-700 transition-colors p-4"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 text-zinc-400">
+                    {item.icon === "🏋️" || item.icon === "🏃" ? (
+                      <Activity className="w-5 h-5" />
+                    ) : (
+                      <TrendingUp className="w-5 h-5" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white text-sm mb-1">
+                      {item.lobbyName}
+                    </h4>
                     <span
-                      className={`text-sm px-3 py-1 rounded-md ${
+                      className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold ${
                         item.result === "win"
-                          ? "bg-[#4ade80]/20 text-[#4ade80]"
+                          ? "bg-emerald-500/10 text-emerald-400"
                           : item.result === "loss"
-                          ? "bg-[#ef4444]/20 text-[#ef4444]"
-                          : "bg-[#1a1a1a] text-[#a0a0a0]"
+                          ? "bg-red-500/10 text-red-400"
+                          : "bg-zinc-800 text-zinc-400"
                       }`}
                     >
-                      {item.result === "win" ? "Won ✓" : item.result === "loss" ? "Lost ✗" : "Pending"}
-                    </span>
-                    <span className="text-sm text-[#a0a0a0]">
-                      {item.verifiedCount}/{item.totalMembers} verified
+                      {item.result === "win" ? "Yes ✓" : item.result === "loss" ? "No ✗" : "Pending"}
                     </span>
                   </div>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-6">
-                {/* Progress circles */}
-                <div className="flex gap-1">
-                  {Array.from({ length: item.totalMembers }, (_, i) => (
-                    <div
-                      key={i}
-                      className={`w-5 h-5 rounded-full border-2 ${
-                        i < item.verifiedCount
-                          ? "bg-[#ff6b35] border-[#ff6b35]"
-                          : "border-[#333]"
-                      }`}
-                    />
-                  ))}
-                </div>
-
                 <div
-                  className={`font-mono-display text-2xl font-bold ${
-                    item.amount > 0 ? "text-[#4ade80]" : "text-[#ef4444]"
+                  className={`font-mono font-bold text-lg ${
+                    item.amount > 0 ? "text-emerald-400" : "text-red-400"
                   }`}
                 >
-                  {item.amount > 0 ? "+" : ""}${item.amount}
+                  {item.amount > 0 ? "+" : ""}
+                  {item.amount}
                 </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
