@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Market</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #252525;
+            --accent: #ff6b35;
+            --accent-hover: #ff8555;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --success: #4ade80;
+            --border: #333;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 60px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #ff8555);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        .user-info h2 {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .user-info h1 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            padding: 12px 32px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .nav-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .stat-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 56px;
+            font-weight: 700;
+            color: var(--success);
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        /* Markets Grid */
+        .markets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 30px;
+        }
+
+        .market-card {
+            background: var(--bg-card);
+            padding: 35px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .market-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), #ff8555);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .market-card:hover::before {
+            opacity: 1;
+        }
+
+        .market-card:hover {
+            border-color: var(--border);
+        }
+
+        .market-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+        }
+
+        .market-title {
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .market-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .progress-circles {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+
+        .circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .circle.filled {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .voting-bar {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: var(--bg-secondary);
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .vote-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.2s ease;
+            background: var(--bg-card);
+        }
+
+        .vote-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .vote-btn.up:hover {
+            background: var(--success);
+        }
+
+        .vote-btn.down:hover {
+            background: #ef4444;
+        }
+
+        .vote-slider {
+            flex: 1;
+            height: 8px;
+            background: linear-gradient(90deg, var(--success) 50%, #ef4444 50%);
+            border-radius: 4px;
+        }
+
+        .market-status {
+            display: inline-block;
+            padding: 6px 14px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 15px;
+        }
+
+        /* Lobby View */
+        .lobby-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .lobby-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .lobby-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
+
+        .lobby-info {
+            font-size: 24px;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .vote-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .vote-option {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .vote-option:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+
+        .vote-count {
+            font-family: 'Space Mono', monospace;
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .vote-price {
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            padding: 35px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .info-card h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .member-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .member {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+
+        .member-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--border);
+        }
+
+        .lobby-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .lobby-stat {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .lobby-stat-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .lobby-stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .terminate-btn {
+            width: 100%;
+            padding: 18px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .terminate-btn:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        /* History View */
+        .history-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .history-card {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .history-card h3 {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .history-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 40px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .calendar-day:hover {
+            border-color: var(--accent);
+        }
+
+        .calendar-day.active {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .day-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .day-number {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .history-item {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .history-item:hover {
+            border-color: var(--accent);
+        }
+
+        .history-item-content {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .history-item-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .history-item-result {
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            background: var(--bg-secondary);
+        }
+
+        .history-item-result.win {
+            color: var(--success);
+        }
+
+        .history-item-result.lose {
+            color: #ef4444;
+        }
+
+        .history-item-amount {
+            font-family: 'Space Mono', monospace;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .history-item-amount.positive {
+            color: var(--success);
+        }
+
+        .history-item-amount.negative {
+            color: #ef4444;
+        }
+
+        .view {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .markets-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .vote-section {
+                grid-template-columns: 1fr;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="user-profile">
+                <div class="avatar">U</div>
+                <div class="user-info">
+                    <h2>Hey,</h2>
+                    <h1>[NAME]</h1>
+                </div>
+            </div>
+            <nav>
+                <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+                <button class="nav-btn" data-view="lobby">Lobby</button>
+                <button class="nav-btn" data-view="history">History</button>
+            </nav>
+        </header>
+
+        <!-- Dashboard View -->
+        <div id="dashboard" class="view active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">+$200</div>
+                    <div class="stat-label">Won So Far</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--accent);">10</div>
+                    <div class="stat-label">Current Markets</div>
+                </div>
+            </div>
+
+            <div class="markets-grid">
+                <div class="market-card">
+                    <div class="market-header">
+                        <div class="market-title">3/5 will<br>go to class</div>
+                        <div class="market-icon">👥</div>
+                    </div>
+                    <div class="progress-circles">
+                        <div class="circle filled"></div>
+                        <div class="circle filled"></div>
+                        <div class="circle filled"></div>
+                        <div class="circle"></div>
+                        <div class="circle"></div>
+                    </div>
+                    <div class="voting-bar">
+                        <button class="vote-btn up">👍</button>
+                        <div class="vote-slider"></div>
+                        <button class="vote-btn down">👎</button>
+                    </div>
+                    <div class="market-status">unread</div>
+                </div>
+
+                <div class="market-card">
+                    <div class="market-header">
+                        <div class="market-title">3/7 will<br>go to the gym</div>
+                        <div class="market-icon">🏋️</div>
+                    </div>
+                    <div class="progress-circles">
+                        <div class="circle filled"></div>
+                        <div class="circle filled"></div>
+                        <div class="circle filled"></div>
+                        <div class="circle filled"></div>
+                        <div class="circle filled"></div>
+                        <div class="circle filled"></div>
+                        <div class="circle"></div>
+                    </div>
+                    <div class="voting-bar">
+                        <button class="vote-btn up">👍</button>
+                        <div class="vote-slider"></div>
+                        <button class="vote-btn down">👎</button>
+                    </div>
+                    <div class="market-status">watching</div>
+                </div>
+
+                <div class="market-card">
+                    <div class="market-header">
+                        <div class="market-title">3/5 will<br>go to class</div>
+                        <div class="market-icon">👥</div>
+                    </div>
+                    <div class="progress-circles">
+                        <div class="circle filled"></div>
+                        <div class="circle filled"></div>
+                        <div class="circle"></div>
+                        <div class="circle"></div>
+                        <div class="circle"></div>
+                    </div>
+                    <div class="voting-bar">
+                        <button class="vote-btn up">👍</button>
+                        <div class="vote-slider"></div>
+                        <button class="vote-btn down">👎</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lobby View -->
+        <div id="lobby" class="view">
+            <div class="lobby-container">
+                <div class="lobby-header">
+                    <h1 class="lobby-title">[Lobby Name]</h1>
+                    <p class="lobby-info">3/5 will go to class</p>
+                    <div class="progress-circles" style="justify-content: center;">
+                        <div class="circle filled"></div>
+                        <div class="circle filled"></div>
+                        <div class="circle filled"></div>
+                        <div class="circle"></div>
+                        <div class="circle"></div>
+                    </div>
+                </div>
+
+                <div class="vote-section">
+                    <div class="vote-option">
+                        <div class="vote-count">0 votes</div>
+                        <div class="vote-price">$1 per vote</div>
+                    </div>
+                    <div class="vote-option">
+                        <div class="vote-count">0 votes</div>
+                        <div class="vote-price">$1 per vote</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>Stats</h3>
+                        <div style="color: var(--text-secondary); line-height: 2;">
+                            <div>Full Pot: $XX</div>
+                            <div># Members: XX</div>
+                            <div># Yes Votes: XX</div>
+                            <div># No Votes: XX</div>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <h3>Members</h3>
+                        <div class="member-list">
+                            <div class="member">
+                                <div class="member-avatar"></div>
+                                <span>Alice</span>
+                            </div>
+                            <div class="member">
+                                <div class="member-avatar"></div>
+                                <span>Bob</span>
+                            </div>
+                            <div class="member">
+                                <div class="member-avatar"></div>
+                                <span>Cathy</span>
+                            </div>
+                            <div class="member">
+                                <div class="member-avatar"></div>
+                                <span>Dan</span>
+                            </div>
+                            <div class="member">
+                                <div class="member-avatar"></div>
+                                <span>Emma</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>Lobby Stats</h3>
+                    <div class="lobby-stats-grid">
+                        <div class="lobby-stat">
+                            <div class="lobby-stat-value">10/30</div>
+                            <div class="lobby-stat-label">days remaining</div>
+                        </div>
+                        <div class="lobby-stat">
+                            <div class="lobby-stat-value">$20</div>
+                            <div class="lobby-stat-label">buy in</div>
+                        </div>
+                    </div>
+                    <button class="terminate-btn">vote to terminate</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- History View -->
+        <div id="history" class="view">
+            <div class="history-summary">
+                <div class="history-card">
+                    <h3>Total Winnings</h3>
+                    <div class="history-value">+$200</div>
+                </div>
+                <div class="history-card">
+                    <h3>This Week</h3>
+                    <div class="history-value">+$10</div>
+                </div>
+            </div>
+
+            <div class="calendar">
+                <div class="calendar-day">
+                    <div class="day-label">Th</div>
+                    <div class="day-number">4</div>
+                </div>
+                <div class="calendar-day active">
+                    <div class="day-label">W</div>
+                    <div class="day-number">3</div>
+                </div>
+                <div class="calendar-day">
+                    <div class="day-label">T</div>
+                    <div class="day-number">2</div>
+                </div>
+                <div class="calendar-day">
+                    <div class="day-label">M</div>
+                    <div class="day-number">1</div>
+                </div>
+                <div class="calendar-day">
+                    <div class="day-label">Su</div>
+                    <div class="day-number">30</div>
+                </div>
+            </div>
+
+            <div class="history-list">
+                <div class="history-item">
+                    <div class="history-item-content">
+                        <div class="market-icon">👥</div>
+                        <div>
+                            <div class="history-item-title">3/5 will go to class</div>
+                            <span class="history-item-result win">Yes ✓</span>
+                        </div>
+                        <div class="progress-circles">
+                            <div class="circle filled"></div>
+                            <div class="circle filled"></div>
+                            <div class="circle filled"></div>
+                            <div class="circle"></div>
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+                    <div class="history-item-amount positive">+$6</div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-item-content">
+                        <div class="market-icon">🏋️</div>
+                        <div>
+                            <div class="history-item-title">3/7 will go to the gym</div>
+                            <span class="history-item-result lose">No ✗</span>
+                        </div>
+                        <div class="progress-circles">
+                            <div class="circle filled"></div>
+                            <div class="circle filled"></div>
+                            <div class="circle filled"></div>
+                            <div class="circle filled"></div>
+                            <div class="circle filled"></div>
+                            <div class="circle filled"></div>
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+                    <div class="history-item-amount negative">-$3</div>
+                </div>
+
+                <div class="history-item">
+                    <div class="history-item-content">
+                        <div class="market-icon">🏋️</div>
+                        <div>
+                            <div class="history-item-title">3/7 will go to the gym</div>
+                            <div class="progress-circles">
+                                <div class="circle filled"></div>
+                                <div class="circle filled"></div>
+                                <div class="circle filled"></div>
+                                <div class="circle filled"></div>
+                                <div class="circle filled"></div>
+                                <div class="circle filled"></div>
+                                <div class="circle"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const views = document.querySelectorAll('.view');
+
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetView = btn.dataset.view;
+                
+                navBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                views.forEach(v => v.classList.remove('active'));
+                document.getElementById(targetView).classList.add('active');
+            });
+        });
+
+        // Vote button interactions
+        document.querySelectorAll('.vote-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                btn.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    btn.style.transform = 'scale(1)';
+                }, 100);
+            });
+        });
+
+        // Market card interactions
+        document.querySelectorAll('.market-card').forEach(card => {
+            card.addEventListener('click', () => {
+                navBtns.forEach(b => b.classList.remove('active'));
+                navBtns[1].classList.add('active');
+                views.forEach(v => v.classList.remove('active'));
+                document.getElementById('lobby').classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
