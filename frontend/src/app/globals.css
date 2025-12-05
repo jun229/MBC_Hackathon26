@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,26 +6,26 @@
 
 @layer base {
   :root {
-    --background: 0 0% 4%;
+    --background: 240 10% 4%;
     --foreground: 0 0% 100%;
-    --card: 0 0% 15%;
+    --card: 240 6% 10%;
     --card-foreground: 0 0% 100%;
-    --popover: 0 0% 10%;
+    --popover: 240 6% 10%;
     --popover-foreground: 0 0% 100%;
-    --primary: 18 100% 60%;
+    --primary: 24 95% 53%;
     --primary-foreground: 0 0% 4%;
-    --secondary: 0 0% 10%;
+    --secondary: 240 4% 16%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 63%;
-    --accent: 18 100% 60%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 24 95% 53%;
     --accent-foreground: 0 0% 4%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --success: 142 71% 65%;
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 18 100% 60%;
+    --success: 160 84% 39%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 24 95% 53%;
     --radius: 0.75rem;
   }
 }
@@ -35,13 +35,33 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-zinc-950 text-zinc-100 font-sans antialiased;
     font-family: 'DM Sans', sans-serif;
+  }
+  ::selection {
+    @apply bg-orange-500/30;
   }
 }
 
 @layer utilities {
   .font-mono-display {
     font-family: 'Space Mono', monospace;
+  }
+}
+
+@layer components {
+  .animate-in {
+    animation: animate-in 0.5s ease-out;
+  }
+
+  @keyframes animate-in {
+    from {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
