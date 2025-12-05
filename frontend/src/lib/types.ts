@@ -1,15 +1,22 @@
+export type LobbyTheme = 'Fitness' | 'Deep Work' | 'Touch Grass' | 'Study' | 'Wellness';
+
 export interface Lobby {
   id: string;
   name: string;
   taskDescription: string;
+  target: string; // e.g., "3/4 will run 1 mile"
+  theme: LobbyTheme;
   entryFee: number;
   charityWallet: string;
   deadline: Date;
   totalPot: number;
   verifiedCount: number;
   totalMembers: number;
+  targetMembers: number; // Number needed to succeed
   icon: string;
   status: 'active' | 'resolved' | 'pending';
+  yesVotes: number;
+  noVotes: number;
 }
 
 export interface Player {
@@ -43,4 +50,5 @@ export interface UserStats {
   weeklyWinnings: number;
   activeMarkets: number;
   winRate: number;
+  streak: number;
 }
