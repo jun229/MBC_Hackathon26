@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Transfer};
+use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
 declare_id!("FWe7tP6KvmJUM2CaTJbYw9GFsiZckSt8CkjjddjCK5pG");
 
@@ -22,6 +22,7 @@ pub mod skeptic {
         lobby.total_pot = 0;
         lobby.verified_count = 0;
         lobby.bump = ctx.bumps.lobby;
+        lobby.mint = ctx.accounts.mint.key();
 
         msg!("Lobby created with entry fee: {}", entry_fee);
         Ok(())
@@ -59,7 +60,7 @@ pub mod skeptic {
     }
 
     pub fn verify_task(ctx: Context<VerifyTask>) -> Result<()> {
-        let lobby = &ctx.accounts.lobby;
+        let lobby = &mut ctx.accounts.lobby;
         let player_status = &mut ctx.accounts.player_status;
 
         require!(player_status.has_deposited, ErrorCode::NotJoined);
@@ -67,6 +68,7 @@ pub mod skeptic {
 
         // Mark as verified
         player_status.is_verified = true;
+        lobby.verified_count = lobby.verified_count.checked_add(1).unwrap();
 
         msg!("Player verified for task: {}", lobby.task_description);
         Ok(())
@@ -137,6 +139,7 @@ pub struct Lobby {
     pub total_pot: u64,          // Total USDC deposited
     pub verified_count: u8,      // Number of winners
     pub bump: u8,                // PDA bump
+    pub mint: Pubkey,            // Token mint (USDC)
 }
 
 #[account]
@@ -157,15 +160,26 @@ pub struct CreateLobby<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 200 + 8 + 32 + 8 + 8 + 1 + 1,
+        space = 8 + 32 + 200 + 8 + 32 + 8 + 8 + 1 + 1 + 32,
         seeds = [b"lobby", authority.key().as_ref()],
         bump
     )]
     pub lobby: Account<'info, Lobby>,
+    #[account(
+        init,
+        payer = authority,
+        token::mint = mint,
+        token::authority = vault,
+        seeds = [b"vault", lobby.key().as_ref()],
+        bump
+    )]
+    pub vault: Account<'info, TokenAccount>,
+    pub mint: Account<'info, Mint>,
     #[account(mut)]
     pub authority: Signer<'info>,
     /// CHECK: Charity wallet address
     pub charity_wallet: AccountInfo<'info>,
+    pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
 
@@ -183,7 +197,10 @@ pub struct JoinLobby<'info> {
     pub player_status: Account<'info, PlayerStatus>,
     #[account(mut)]
     pub player: Signer<'info>,
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = player_token_account.mint == lobby.mint @ ErrorCode::InvalidMint
+    )]
     pub player_token_account: Account<'info, TokenAccount>,
     #[account(
         mut,
@@ -197,6 +214,7 @@ pub struct JoinLobby<'info> {
 
 #[derive(Accounts)]
 pub struct VerifyTask<'info> {
+    #[account(mut)]
     pub lobby: Account<'info, Lobby>,
     #[account(
         mut,
@@ -226,7 +244,10 @@ pub struct ClaimWinnings<'info> {
     )]
     pub player_status: Account<'info, PlayerStatus>,
     pub player: Signer<'info>,
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = player_token_account.mint == lobby.mint @ ErrorCode::InvalidMint
+    )]
     pub player_token_account: Account<'info, TokenAccount>,
     #[account(
         mut,
@@ -257,4 +278,6 @@ pub enum ErrorCode {
     NotVerified,
     #[msg("Player has already claimed winnings")]
     AlreadyClaimed,
+    #[msg("Invalid token mint")]
+    InvalidMint,
 }
